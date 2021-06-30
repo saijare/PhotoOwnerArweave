@@ -1,0 +1,332 @@
+﻿<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+<center>
+        <title>Photo Owner Arweave, By Mounzer Saijare</title>
+<a href="help.html"target="_blank">Help!</a>
+         <h2>Photo Owner Arweave, By Mounzer Saijare, email: saijare@yahoo.com</h2>        
+                 <h3>Choose photo to insert, by exploring to the file or by drag and drop! </h3>
+               <label for="arfile">Select your Arweave wallet file:</label>
+  <input type="file" id="arfile" name="myfile">
+<button onclick="connect()"style="display: inline-block;"/>Connect to your Arweave wallet</button>
+
+<p id="conn"style="display: inline-block;"/></p>
+<br><br>
+    </center>
+<style>
+#droppable-zone-text {
+  width: 700px;
+  height: 70px;
+  padding: 10px;
+  //border: 1px solid #aaaaaa;
+  border: 10px dashed #ccc;
+}
+#droppable-zone-text.hover {
+  border: 10px dashed #333;
+}
+#input {
+    
+   width: 200px;
+}
+</style>
+<script src="https://unpkg.com/arweave/bundles/web.bundle.min.js"></script>
+<script type="text/javascript" src="./jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="./main.js"></script>
+<script type="text/javascript" src="./sha256.min.js"></script>
+<SCRIPT>method = sha256;</SCRIPT>
+<SCRIPT>
+var arweave=null;
+var jwk=null;
+var base64file=null;
+var filename=null;
+var gotfile=0;
+window.onload = function() {
+ document.getElementById("execute").style.width = "300px";
+
+document.getElementById("Button2").style.width = "300px";
+document.getElementById("get").style.width = "300px";
+document.getElementById("execute").style.borderSpacing = "20px";
+document.getElementById("output").style.width = "300px";
+document.getElementById("data").style.width = "1000px";
+document.getElementById("output").value="";
+document.getElementById("conn").innerHTML="";
+document.getElementById("auto-update").checked = false;
+//document.getElementById("auto-update").disabled = true;
+//document.getElementById("auto-update").style.visibility = "hidden";
+
+document.getElementById("xbalance").innerHTML = " Choose a photo file and click Hash to calculate the SAH256 hash code for the selected file! ";
+    var input = document.getElementById('input');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+    input.addEventListener('change', function(e) {
+if (input.value === "") {
+window.gotfile=0;
+document.getElementById("output").innerHTML="";
+document.getElementById("some_text").innerHTML = "";
+fileDisplayArea.innerHTML = "";
+document.getElementById("droppable-zone-text").innerHTML =" Drop file here!"
+document.getElementById("xbalance").innerHTML = " Choose a photo file and click Hash to calculate the SAH256 hash code for the selected file! ";
+}else{
+document.getElementById("output").innerHTML="";
+document.getElementById("some_text").innerHTML = "";
+fileDisplayArea.innerHTML = "File not supported!";
+      // Put the rest of the demo hash code here.
+var file = input.files[0];
+filename = input.files[0].name;
+document.getElementById("droppable-zone-text").innerHTML = " Drop file here! the selected file now is : " + file.name;
+    //       alert(file.name);
+    document.getElementById("some_text").innerHTML = file.name;
+var imageType = /image.*/;
+if (file.type.match(imageType)) {
+  var reader = new FileReader();
+
+  reader.onload = function(e) {
+    fileDisplayArea.innerHTML = "";
+ // Create a new image.
+    var img = new Image();
+    // Set the img src property using the data URL.
+var contents = e.target.result;
+ base64 = contents.substr(contents.indexOf(',') + 1); 
+    // Set the img src property using the data URL.
+    img.src = contents; 
+    // Add the image to the page.
+    fileDisplayArea.appendChild(img);
+window.gotfile=1;
+
+if (document.getElementById("auto-update").checked == true) {
+ 
+ document.getElementById("xbalance").innerHTML = " Click Insert to insert the photo record to Arweave! ";
+  } else {
+document.getElementById("xbalance").innerHTML = " Click Hash to calculate the SAH256 hash code for the selected file! ";
+}
+
+}
+  reader.readAsDataURL(file); 
+} else {
+  fileDisplayArea.innerHTML = "File not supported!";
+}
+}
+    });
+
+}
+
+function connect() {
+if (document.getElementById("arfile").files.length ===0) { 
+alert("choose Arweave wallet file!");
+return;
+}
+var WalletFile = document.getElementById('arfile');
+    var File = WalletFile.files[0];
+    var readWallet = new FileReader();
+    readWallet.onload = loginToArweave;
+    readWallet.readAsText(File);
+}
+function loginToArweave(readWallet) 
+{
+document.getElementById("conn").innerHTML = "";
+    var lines = readWallet.target.result;
+    jwk = JSON.parse(lines);
+ arweave = Arweave.init();
+    // Get the wallet address for a private key save it as currentAddress
+    arweave.wallets.jwkToAddress(jwk).then((address) => {
+      currentAddress = String(address);
+arweave.wallets.getBalance(address).then((balance) => {
+    var winston = balance;
+    var ar = arweave.ar.winstonToAr(balance);
+ document.getElementById("conn").innerHTML = " Connected . Balance: "+ar;
+});
+ })
+}
+
+
+function changetext() {
+
+if (document.getElementById("output").value==="") {
+document.getElementById("xbalance").innerHTML = " Choose a certification file and click Hash to calculate the SAH256 hash code for the selected file! ";
+} else {
+
+ document.getElementById("xbalance").innerHTML = " Click verify to verify the certification file! ";
+  }
+if (document.getElementById("auto-update").checked == true && window.gotfile==1) {
+document.getElementById("xbalance").innerHTML = " Click send to blockchain! ";
+}
+}
+
+function changetext2() {
+if (document.getElementById("input").files.length ===0) { 
+alert("choose file!");
+return;
+}
+if (document.getElementById('input').value !== "") {
+document.getElementById("xbalance").innerHTML = " Click send to blockchain! ";
+}
+}
+
+async function sendtoblockchain() {
+    try {
+if (document.getElementById("conn").innerHTML ==="") { 
+alert("Arweave is undefined, connect to Arweave");
+return;
+}
+if (navigator.onLine){
+if (document.getElementById("output").value !=="")  {
+if (document.getElementById('output').value.length !==64) {alert(" Click Hash! Erorr in SAH256 hash code. The length not equal to 64  ");} else {
+if (document.getElementById("xvalue").value === "" ) {alert(" You did not write the name of the photo owner ");}  else {
+       
+var dataToSave = [document.getElementById("xvalue").value,filename, document.getElementById("output").value,base64];
+        var jsonDataToSave = JSON.stringify(dataToSave);
+        var transactionA =await arweave.createTransaction( {
+                data: jsonDataToSave,
+            }, jwk );
+          await  arweave.transactions.sign(transactionA, jwk);
+         await    arweave.transactions.post(transactionA);
+alert("Transation is done successfully with this transaction ID: "+transactionA.id);
+} 
+}
+}
+else {alert(" Click Hash to calculate the SAH256 hash code for the selected file! ");  }
+ }
+else {alert(" No internet connection! ");  }   
+}
+    catch (err) {
+        document.getElementById("xbalance").innerHTML = "Erorr : "+err;
+    }
+ 
+}   
+ 
+//
+</SCRIPT>
+
+
+<META content="IE=11.0000" 
+     
+<META charset="utf-8">     
+
+<SCRIPT>
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function drag(event) {
+  event.dataTransfer.setData("text", ev.target.id);
+}
+
+function drop(event) {
+
+document.getElementById("output").innerHTML="";
+document.getElementById("some_text").innerHTML = "";
+var myNode = document.getElementById("fileDisplayArea");
+while (myNode.firstChild) {
+    myNode.removeChild(myNode.firstChild);
+}
+  event.preventDefault();
+var file = event.dataTransfer.files[0];
+filename = event.dataTransfer.files[0].name;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+var img = new Image();
+    // Set the img src property using the data URL.
+var contents = e.target.result;
+ base64 = contents.substr(contents.indexOf(',') + 1);
+ img.src = contents;
+ //document.getElementById("image").innerHTML = '<img src=img/>';
+ fileDisplayArea.appendChild(img);
+window.gotfile=1
+
+if (document.getElementById("auto-update").checked == true) {
+ 
+ document.getElementById("xbalance").innerHTML = " Click verify to verify the certification file! ";
+  } else {
+document.getElementById("xbalance").innerHTML = " Click Hash to calculate the SAH256 hash code for the selected file! ";
+}
+document.getElementById("droppable-zone-text").innerHTML = " Drop file here! the selected file now is : " + file.name;
+     //       alert(file.name);
+        document.getElementById("some_text").innerHTML = file.name;
+};
+reader.readAsDataURL(file);
+
+}
+
+//function to retrieve the last inserted value on the blockchain
+function getdata() {
+    try {
+if (document.getElementById("conn").innerHTML ==="") { 
+alert("Arweave is undefined, connect to Arweave");
+return;
+}
+if (navigator.onLine){ 
+if (document.getElementById("id").value !=="")  {
+      // Get the base64url encoded string
+document.getElementById("id").value=document.getElementById("id").value.trim();
+document.getElementById("id").innerHTML=document.getElementById("id").value;
+arweave.transactions.getData(document.getElementById("id").value, {decode: true, string: true}).then(data => {
+var da=JSON.parse(data);
+document.getElementById("data").innerHTML = "Owner: "+da[0]+", file name: "+da[1]+", SAH256 hash code: "+da[2];
+ fileDisplayArea.innerHTML = "";
+var img = new Image();
+var ASCIIst = atob(da[3]);
+                    var array = new Uint8Array(ASCIIst.length);
+                    for (var i = 0; i < ASCIIst.length; i++) {
+                        array[i] = ASCIIst.charCodeAt(i);
+                    }
+                    var blob1 = new Blob([array], { type: 'application/octet-stream' });
+                      var urlCreator = window.URL || window.webkitURL;
+                       var imageUrl = urlCreator.createObjectURL(blob1);
+                       img.src = imageUrl;      
+  fileDisplayArea.appendChild(img);              
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob1);
+                    link.download = da[1];
+                    link.click();
+});
+}else {alert(" Enter transaction ID! ");  }  
+}
+else {alert(" No internet connection! ");  }   
+    }
+    catch (err) {
+        document.getElementById("xbalance").innerHTML = "Erorr : "+err;
+    }
+}
+</SCRIPT>
+</HEAD>   
+<BODY>
+<center>
+<DIV class="input">
+<DIV id="droppable-zone">
+<DIV id="droppable-zone-wrapper">
+<DIV id="droppable-zone-text" size="400" ondrop="drop(event)" ondragover="allowDrop(event)" >Drop File Here!</DIV>
+</DIV><INPUT class="droppable-file" id="input" size="60" type="file" placeholder="Input2"style="display: none;"> </DIV>
+ <input type="button" value="Browse File..." onclick="document.getElementById('input').click();" />                
+                The name of the selected file is:
+<p id="some_text"style="display: inline-block;"/p>
+</div>
+
+<DIV id="xbalance" size="200"</div>
+</div>
+<DIV class="submit"><INPUT class="btn btn-default" id="execute" type="button" onclick="changetext2()" value="Hash"> 
+<LABEL><INPUT id="auto-update" type="checkbox" checked="checked" 
+value="1" onclick="changetext();" >Auto Update           </LABEL>
+
+</div>
+<DIV class="output"><Output id="output"</DIV>
+</div>
+ 
+ </div class="clearfix"</DIV>
+</center>
+   
+<SCRIPT>
+method = SAH256;
+</SCRIPT>
+ <center>
+<h3>Enter the name of the photo owner to send to the Blockchain! </h3>
+<input id="xvalue" type="text" size="50"/>
+<button id="Button2" type="button" onClick="sendtoblockchain();"> Send to the Blockchain! </button>
+<h3>Enter the transaction ID to get the data! </h3>
+<input id="id" type="text" size="50"/>
+<button id="get" type="button" onClick="getdata();"> Get the data! </button>
+<p id="data"/></p>
+ <div id="fileDisplayArea"></div>
+</center>
+
+</BODY>
+</HTML>
